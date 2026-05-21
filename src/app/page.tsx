@@ -8,9 +8,7 @@ import {
   Gamepad2,
   ImagePlus,
   Loader2,
-  Mail,
   Radio,
-  Share2,
   Shield,
   Swords,
   Trophy,
@@ -71,54 +69,23 @@ const styleIcons: Record<AvatarStyleId, typeof Shield> = {
   "pixel-arcade": Gamepad2,
 };
 
-function svgAvatar(style: AvatarStyle, index: number) {
-  const seed = `${style.id}-${index}`;
-  const title = `${style.name} ${index}`;
-
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-      <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="${index % 2 ? "#84cc16" : "#22d3ee"}"/>
-          <stop offset="48%" stop-color="${index % 3 ? "#18181b" : "#a855f7"}"/>
-          <stop offset="100%" stop-color="${index % 2 ? "#f97316" : "#f43f5e"}"/>
-        </linearGradient>
-        <filter id="noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/>
-          <feColorMatrix type="saturate" values="0"/>
-          <feComponentTransfer>
-            <feFuncA type="table" tableValues="0 0.18"/>
-          </feComponentTransfer>
-        </filter>
-      </defs>
-      <rect width="1024" height="1024" fill="url(#bg)"/>
-      <rect width="1024" height="1024" filter="url(#noise)" opacity="0.28"/>
-      <circle cx="512" cy="384" r="172" fill="#f4f4f5" opacity="0.92"/>
-      <path d="M230 900c44-186 156-278 282-278s238 92 282 278" fill="#09090b" opacity="0.88"/>
-      <path d="M326 356c76-132 289-132 372 0-38-31-89-49-186-49s-148 18-186 49z" fill="#09090b"/>
-      <rect x="128" y="126" width="768" height="768" rx="56" fill="none" stroke="#ffffff" stroke-width="18" opacity="0.18"/>
-      <text x="512" y="830" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800">${title}</text>
-      <text x="512" y="902" text-anchor="middle" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Made with GAIMIN</text>
-      <desc>${seed}</desc>
-    </svg>
-  `)}`;
-}
-
-function downloadDataUrl(url: string, filename: string) {
+function downloadImage(url: string, filename: string) {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
+  anchor.target = "_blank";
   anchor.click();
 }
 
 export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<AvatarStyleId>("cyber-esports");
   const [variationCount, setVariationCount] = useState(4);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<GeneratedAvatar[]>([]);
-  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
 
   const activeStyle = useMemo(
     () => styles.find((style) => style.id === selectedStyle) ?? styles[0],
@@ -127,41 +94,55 @@ export default function Home() {
 
   function handleUpload(file?: File) {
     if (!file) return;
+    setSelectedFile(file);
     setFileName(file.name);
     setPreviewUrl(URL.createObjectURL(file));
     setResults([]);
+    setError("");
   }
 
   async function handleGenerate() {
-    if (!previewUrl) return;
+    if (!selectedFile) return;
 
     setIsGenerating(true);
     setResults([]);
+    setError("");
 
-    await new Promise((resolve) => setTimeout(resolve, 900));
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      formData.append("style", activeStyle.id);
+      formData.append("variations", String(variationCount));
 
-    setResults(
-      Array.from({ length: variationCount }, (_, index) => ({
-        id: `${activeStyle.id}-${index + 1}`,
-        label: `${activeStyle.name} ${index + 1}`,
-        imageUrl: svgAvatar(activeStyle, index + 1),
-      })),
-    );
-    setIsGenerating(false);
-  }
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await response.json()) as {
+        images?: GeneratedAvatar[];
+        error?: string;
+      };
 
-  function downloadGamerCard() {
-    const card = results[0] ?? {
-      label: activeStyle.name,
-      imageUrl: svgAvatar(activeStyle, 1),
-    };
-    downloadDataUrl(card.imageUrl, "gaimin-gamer-card.svg");
+      if (!response.ok || !payload.images) {
+        throw new Error(payload.error ?? "Generation failed.");
+      }
+
+      setResults(payload.images);
+    } catch (generationError) {
+      setError(
+        generationError instanceof Error
+          ? generationError.message
+          : "Generation failed.",
+      );
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   function downloadAll() {
     results.forEach((result, index) => {
       setTimeout(
-        () => downloadDataUrl(result.imageUrl, `gaimin-avatar-${index + 1}.svg`),
+        () => downloadImage(result.imageUrl, `gaimin-avatar-${index + 1}.jpg`),
         index * 120,
       );
     });
@@ -311,7 +292,7 @@ export default function Home() {
                 <Button
                   type="button"
                   onClick={handleGenerate}
-                  disabled={!previewUrl || isGenerating}
+                  disabled={!selectedFile || isGenerating}
                 >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -321,6 +302,9 @@ export default function Home() {
                   Generate
                 </Button>
               </div>
+              {error && (
+                <p className="mt-3 text-sm font-semibold text-red-300">{error}</p>
+              )}
             </Card>
 
             {results.length > 0 && (
@@ -331,24 +315,6 @@ export default function Home() {
                     <Button variant="secondary" size="sm" onClick={downloadAll}>
                       <Download className="h-4 w-4" />
                       All
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={downloadGamerCard}>
-                      <Trophy className="h-4 w-4" />
-                      Gamer Card
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() =>
-                        navigator.share?.({
-                          title: "GAIMIN Avatar AI",
-                          text: "Made with GAIMIN Avatar AI",
-                          url: window.location.href,
-                        })
-                      }
-                    >
-                      <Share2 className="h-4 w-4" />
-                      Share
                     </Button>
                   </div>
                 </div>
@@ -373,9 +339,9 @@ export default function Home() {
                           size="icon"
                           aria-label={`Download variation ${index + 1}`}
                           onClick={() =>
-                            downloadDataUrl(
+                            downloadImage(
                               result.imageUrl,
-                              `gaimin-avatar-${index + 1}.svg`,
+                              `gaimin-avatar-${index + 1}.jpg`,
                             )
                           }
                         >
@@ -385,31 +351,6 @@ export default function Home() {
                     </Card>
                   ))}
                 </div>
-
-                <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white">Get the GAIMIN drop</h3>
-                    <p className="text-sm text-zinc-400">
-                      Capture emails for launch updates, rewards, and ecosystem
-                      onboarding.
-                    </p>
-                  </div>
-                  <div className="flex min-w-0 flex-1 gap-2">
-                    <div className="relative min-w-0 flex-1">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="player@email.com"
-                        className="h-11 w-full rounded-md border border-zinc-700 bg-zinc-900 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-lime-300"
-                      />
-                    </div>
-                    <Button type="button" variant="secondary">
-                      Join
-                    </Button>
-                  </div>
-                </Card>
               </section>
             )}
           </section>
