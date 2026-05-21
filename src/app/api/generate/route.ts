@@ -1,12 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
-  return NextResponse.json(
-    {
-      error: "AI provider is not configured yet.",
-      nextStep:
-        "Wire this route to Grok Imagine, Flux, Replicate, or Leonardo once prompt templates are finalized.",
-    },
-    { status: 501 },
-  );
+const validStyles = new Set([
+  "battle-royale",
+  "block-world",
+  "cyber-esports",
+  "fantasy-rpg",
+  "anime-arena",
+  "pixel-arcade",
+]);
+
+export async function POST(request: NextRequest) {
+  const formData = await request.formData();
+  const image = formData.get("image");
+  const style = String(formData.get("style") ?? "");
+  const requestedVariations = Number(formData.get("variations") ?? 1);
+  const variations = Math.min(Math.max(requestedVariations || 1, 1), 4);
+
+  if (!(image instanceof File)) {
+    return NextResponse.json({ error: "Image file is required." }, { status: 400 });
+  }
+
+  if (!validStyles.has(style)) {
+    return NextResponse.json({ error: "Valid style is required." }, { status: 400 });
+  }
+
+  const images = Array.from({ length: variations }, (_, index) => ({
+    id: `${style}-${index + 1}`,
+    label: `Variation ${index + 1}`,
+    imageUrl: `https://picsum.photos/seed/gaimin-${style}-${index + 1}/1024/1024`,
+  }));
+
+  return NextResponse.json({
+    success: true,
+    images,
+  });
 }
