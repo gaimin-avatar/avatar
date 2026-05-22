@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       provider: "xai",
+      prompt,
+      styleId: style,
       images,
     });
   } catch (error) {
