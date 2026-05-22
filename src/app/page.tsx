@@ -249,6 +249,21 @@ function readSessionHistory(): GenerationRecord[] {
   }
 }
 
+function writeSessionHistory(generationHistory: GenerationRecord[]) {
+  try {
+    window.sessionStorage.setItem(
+      "gaimin-avatar-history",
+      JSON.stringify(
+        generationHistory.map(
+          ({ sourceImageDataUri: _sourceImageDataUri, ...generation }) => generation,
+        ),
+      ),
+    );
+  } catch (storageError) {
+    console.warn("gaimin-avatar-history-persist-failed", storageError);
+  }
+}
+
 function formatTimestamp(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
@@ -343,12 +358,7 @@ export default function Home() {
   useEffect(() => {
     if (!historyReady) return;
 
-    window.sessionStorage.setItem(
-      "gaimin-avatar-history",
-      JSON.stringify(
-        generationHistory.map(({ sourceImageDataUri: _sourceImageDataUri, ...generation }) => generation),
-      ),
-    );
+    writeSessionHistory(generationHistory);
   }, [generationHistory, historyReady]);
 
   function track(name: string, data?: Record<string, unknown>) {
