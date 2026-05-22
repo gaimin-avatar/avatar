@@ -56,22 +56,10 @@ export const avatarStyles: AvatarStyle[] = [
     accent: "from-[#8b00ff] to-amber-300",
   },
   {
-    id: "sports-mvp",
-    name: "Sports Sim MVP",
-    description: "stadium hero, trophy-night confidence",
-    accent: "from-emerald-300 to-[#8b00ff]",
-  },
-  {
     id: "wasteland-survivor",
     name: "Wasteland Survivor",
     description: "post-apocalyptic grit, cinematic resilience",
     accent: "from-stone-300 to-[#8b00ff]",
-  },
-  {
-    id: "mythic-tamer",
-    name: "Mythic Creature Tamer",
-    description: "legendary companion, enchanted bond",
-    accent: "from-fuchsia-300 to-[#8b00ff]",
   },
 ];
 

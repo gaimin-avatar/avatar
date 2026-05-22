@@ -44,9 +44,7 @@ const styleMotifs: Record<AvatarStyleId, string> = {
   "stealth-ops": "covert noir",
   "space-ranger": "orbital patrol",
   "racing-drift": "night circuit",
-  "sports-mvp": "stadium star",
   "wasteland-survivor": "dust legend",
-  "mythic-tamer": "bonded myth",
 };
 
 function StyleSigil({ id }: { id: AvatarStyleId }) {
@@ -148,17 +146,6 @@ function StyleSigil({ id }: { id: AvatarStyleId }) {
         <path d="M15 28h18M18 21h12M14 36l4-5m16 5-4-5" stroke="#08050d" strokeWidth="2.4" strokeLinecap="round" />
         <path d="M7 18h7M34 18h7" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" />
         <defs><linearGradient id="racing" x1="8" x2="40" y1="16" y2="39"><stop stopColor="#facc15" /><stop offset=".45" stopColor="#f97316" /><stop offset="1" stopColor="#8b00ff" /></linearGradient></defs>
-      </svg>
-    );
-  }
-
-  if (id === "sports-mvp") {
-    return (
-      <svg viewBox="0 0 48 48" className={common} aria-hidden>
-        <path d="M24 5 33 18l14 2-10 10 2 14-15-7-15 7 2-14L1 20l14-2 9-13Z" fill="url(#sports)" />
-        <path d="M17 25h14M24 17v16" stroke="#08050d" strokeWidth="2.5" strokeLinecap="round" opacity=".75" />
-        <path d="M19 31h10" stroke={stroke} strokeWidth="2" strokeLinecap="round" />
-        <defs><linearGradient id="sports" x1="4" x2="44" y1="6" y2="44"><stop stopColor="#86efac" /><stop offset=".55" stopColor="#22c55e" /><stop offset="1" stopColor="#8b00ff" /></linearGradient></defs>
       </svg>
     );
   }

@@ -8,9 +8,7 @@ export type AvatarStyleId =
   | "stealth-ops"
   | "space-ranger"
   | "racing-drift"
-  | "sports-mvp"
-  | "wasteland-survivor"
-  | "mythic-tamer";
+  | "wasteland-survivor";
 
 export type AvatarStyle = {
   id: AvatarStyleId;
