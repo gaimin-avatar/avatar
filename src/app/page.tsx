@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { avatarStyles } from "@/lib/avatar-styles";
+import type { SharePayload } from "@/lib/share-store";
 import { cn } from "@/lib/utils";
 import type { AvatarStyleId, GeneratedAvatar } from "@/types/avatar";
 
@@ -31,12 +32,6 @@ type GenerationRecord = {
   images: GeneratedAvatar[];
   prompt?: string;
   sourceImageDataUri?: string;
-};
-
-type SharePayload = {
-  styleName: string;
-  createdAt: string;
-  images: Pick<GeneratedAvatar, "imageUrl" | "label">[];
 };
 
 const styleMotifs: Record<AvatarStyleId, string> = {
@@ -493,7 +488,23 @@ export default function Home() {
         label: result.label,
       })),
     };
-    const shareUrl = `${window.location.origin}/share#${encodeSharePayload(payload)}`;
+    let shareUrl = `${window.location.origin}/share#${encodeSharePayload(payload)}`;
+
+    try {
+      const response = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const share = (await response.json()) as { url?: string };
+
+      if (response.ok && share.url) {
+        shareUrl = `${window.location.origin}${share.url}`;
+      }
+    } catch {
+      // Fall back to hash payload links when the short-link API is unavailable.
+    }
+
     const shareText = `Just became a ${activeStyle.name} on GAIMIN Avatar AI. Made with GAIMIN Avatar AI. Check it out: ${shareUrl}`;
     const shareData = {
       title: "GAIMIN Avatar AI",
