@@ -27,6 +27,8 @@ type GenerationRecord = {
   styleName: string;
   createdAt: string;
   images: GeneratedAvatar[];
+  prompt?: string;
+  sourceImageDataUri?: string;
 };
 
 type SharePayload = {
@@ -168,6 +170,15 @@ function downloadImage(url: string, filename: string) {
   anchor.click();
 }
 
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 function readSessionHistory(): GenerationRecord[] {
   if (typeof window === "undefined") return [];
 
@@ -206,6 +217,7 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [sourceImageDataUri, setSourceImageDataUri] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<GeneratedAvatar[]>([]);
   const [generationHistory, setGenerationHistory] = useState<GenerationRecord[]>([]);
@@ -213,8 +225,9 @@ export default function Home() {
   const [selectedHistoryId, setSelectedHistoryId] = useState("");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
-  const [emailStatus, setEmailStatus] = useState("");
   const [shareStatus, setShareStatus] = useState("");
+  const [unlockStatus, setUnlockStatus] = useState("");
+  const [isUnlocking4k, setIsUnlocking4k] = useState(false);
 
   const activeStyle = useMemo(
     () =>
@@ -239,7 +252,9 @@ export default function Home() {
 
     window.sessionStorage.setItem(
       "gaimin-avatar-history",
-      JSON.stringify(generationHistory),
+      JSON.stringify(
+        generationHistory.map(({ sourceImageDataUri: _sourceImageDataUri, ...generation }) => generation),
+      ),
     );
   }, [generationHistory, historyReady]);
 
@@ -251,14 +266,16 @@ export default function Home() {
     }).catch(() => undefined);
   }
 
-  function handleUpload(file?: File) {
+  async function handleUpload(file?: File) {
     if (!file) return;
     setSelectedFile(file);
     setFileName(file.name);
     setPreviewUrl(URL.createObjectURL(file));
+    setSourceImageDataUri(await fileToDataUrl(file));
     setResults([]);
     setError("");
     setShareStatus("");
+    setUnlockStatus("");
     track("avatar_upload", { type: file.type, size: file.size });
   }
 
@@ -269,6 +286,7 @@ export default function Home() {
     setResults([]);
     setError("");
     setShareStatus("");
+    setUnlockStatus("");
 
     try {
       const formData = new FormData();
@@ -282,6 +300,7 @@ export default function Home() {
       });
       const payload = (await response.json()) as {
         images?: GeneratedAvatar[];
+        prompt?: string;
         error?: string;
       };
 
@@ -295,6 +314,8 @@ export default function Home() {
         styleName: activeStyle.name,
         createdAt: new Date().toISOString(),
         images: payload.images,
+        prompt: payload.prompt,
+        sourceImageDataUri,
       };
 
       setResults(payload.images);
@@ -319,6 +340,7 @@ export default function Home() {
   function viewHistoryGeneration(generation: GenerationRecord) {
     setResults(generation.images);
     setSelectedStyle(generation.styleId);
+    setSourceImageDataUri(generation.sourceImageDataUri ?? "");
     setSelectedHistoryId(generation.id);
     setViewMode("new");
     track("avatar_history_view", { style: generation.styleId });
@@ -404,18 +426,49 @@ export default function Home() {
     track("avatar_share", { style: activeStyle.id, target: "share_page" });
   }
 
-  async function captureEmail() {
-    setEmailStatus("");
-    const response = await fetch("/api/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
+  async function unlock4k() {
+    setUnlockStatus("");
 
-    setEmailStatus(response.ok ? "You're on the list." : "Enter a valid email.");
-    if (response.ok) {
-      setEmail("");
-      track("avatar_email_capture");
+    if (!results.length || !sourceImageDataUri) {
+      setUnlockStatus("Generate an avatar first, then unlock 4K HD.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setUnlockStatus("Enter your email to unlock 4K HD.");
+      return;
+    }
+
+    setIsUnlocking4k(true);
+
+    try {
+      const response = await fetch("/api/unlock-4k", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          styleId: activeStyle.id,
+          sourceImageDataUri,
+          variations: results.length || 2,
+        }),
+      });
+      const payload = (await response.json()) as {
+        message?: string;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "4K unlock failed.");
+      }
+
+      setUnlockStatus(payload.message ?? "Check your email.");
+      track("avatar_unlock_4k", { style: activeStyle.id });
+    } catch (unlockError) {
+      setUnlockStatus(
+        unlockError instanceof Error ? unlockError.message : "4K unlock failed.",
+      );
+    } finally {
+      setIsUnlocking4k(false);
     }
   }
 
@@ -700,33 +753,52 @@ export default function Home() {
                     </Card>
                   ))}
                 </div>
-                <Card className="flex flex-col gap-3 p-4">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white">Next Level</h3>
-                    <p className="text-sm text-zinc-400">
-                      Get launch updates for GAIMIN Launcher, GGPL, and Club.
-                    </p>
-                  </div>
-                  <div className="flex min-w-0 gap-2">
-                    <div className="relative min-w-0 flex-1">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="player@email.com"
-                        className="h-11 w-full rounded-md border border-white/10 bg-black/35 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-[#8b00ff]"
-                      />
+                <Card className="relative overflow-hidden p-4">
+                  <div className="absolute -right-14 -top-16 h-36 w-36 rounded-full bg-[#8b00ff]/25 blur-3xl" />
+                  <div className="relative flex flex-col gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-[#8b00ff]/30 bg-[#8b00ff]/15 text-[#e9d5ff]">
+                        <Zap className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-black text-white">Want 4K HD versions?</h3>
+                        <p className="mt-1 text-sm leading-6 text-zinc-400">
+                          Enter your email to unlock 4K HD upgrades, save this avatar
+                          set, and get GAIMIN Launcher, GGPL, and Club updates.
+                        </p>
+                      </div>
                     </div>
-                    <Button type="button" variant="secondary" onClick={captureEmail}>
-                      Join
-                    </Button>
+                    <div className="flex min-w-0 gap-2">
+                      <div className="relative min-w-0 flex-1">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
+                          placeholder="player@email.com"
+                          className="h-11 w-full rounded-md border border-white/10 bg-black/35 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-[#8b00ff]"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={unlock4k}
+                        disabled={isUnlocking4k}
+                      >
+                        {isUnlocking4k ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Zap className="h-4 w-4" />
+                        )}
+                        Unlock 4K
+                      </Button>
+                    </div>
+                    {unlockStatus && (
+                      <p className="rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-sm font-semibold text-[#d8b4fe]">
+                        {unlockStatus}
+                      </p>
+                    )}
                   </div>
-                  {emailStatus && (
-                    <p className="text-sm font-semibold text-[#c084fc]">
-                      {emailStatus}
-                    </p>
-                  )}
                 </Card>
               </section>
             )}
