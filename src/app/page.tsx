@@ -592,33 +592,22 @@ export default function Home() {
               className="h-9 w-[128px] object-contain sm:h-10 sm:w-[142px]"
             />
           </Link>
-          <div className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-black/25 p-1">
-            {(["create", "history"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                className={cn(
-                  "flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition",
-                  viewMode === mode
-                    ? "bg-white text-black"
-                    : "text-zinc-400 hover:text-white",
-                )}
-              >
-                {mode === "create" ? (
-                  <Sparkles className="h-3.5 w-3.5" />
-                ) : (
-                  <History className="h-3.5 w-3.5" />
-                )}
-                <span className="hidden sm:inline">
-                  {mode === "create" ? "Create" : "History"}
-                </span>
-                {mode === "history" && generationHistory.length > 0 && (
-                  <span className="text-[10px]">{generationHistory.length}</span>
-                )}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setViewMode("history")}
+            className={cn(
+              "flex h-10 items-center gap-1.5 rounded-full border border-white/[0.08] bg-black/25 px-3 text-xs font-semibold transition",
+              viewMode === "history"
+                ? "bg-white text-black"
+                : "text-zinc-400 hover:text-white",
+            )}
+          >
+            <History className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">History</span>
+            {generationHistory.length > 0 && (
+              <span className="text-[10px]">{generationHistory.length}</span>
+            )}
+          </button>
         </header>
 
         {viewMode === "create" ? (
