@@ -3,6 +3,7 @@
 import {
   BadgeCheck,
   Download,
+  History,
   ImagePlus,
   Loader2,
   Mail,
@@ -10,13 +11,23 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { avatarStyles } from "@/lib/avatar-styles";
 import { cn } from "@/lib/utils";
 import type { AvatarStyleId, GeneratedAvatar } from "@/types/avatar";
+
+type ViewMode = "new" | "history";
+
+type GenerationRecord = {
+  id: string;
+  styleId: AvatarStyleId;
+  styleName: string;
+  createdAt: string;
+  images: GeneratedAvatar[];
+};
 
 const styleMotifs: Record<AvatarStyleId, string> = {
   "battle-royale": "drop-zone vector",
@@ -151,14 +162,41 @@ function downloadImage(url: string, filename: string) {
   anchor.click();
 }
 
+function readSessionHistory(): GenerationRecord[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const storedHistory = window.sessionStorage.getItem("gaimin-avatar-history");
+    if (!storedHistory) return [];
+
+    const parsedHistory = JSON.parse(storedHistory) as GenerationRecord[];
+    return Array.isArray(parsedHistory) ? parsedHistory : [];
+  } catch {
+    return [];
+  }
+}
+
+function formatTimestamp(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
 export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<AvatarStyleId>("cyber-esports");
   const variationCount = 2;
+  const [viewMode, setViewMode] = useState<ViewMode>("new");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<GeneratedAvatar[]>([]);
+  const [generationHistory, setGenerationHistory] = useState<GenerationRecord[]>([]);
+  const [historyReady, setHistoryReady] = useState(false);
+  const [selectedHistoryId, setSelectedHistoryId] = useState("");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
@@ -168,6 +206,27 @@ export default function Home() {
       avatarStyles.find((style) => style.id === selectedStyle) ?? avatarStyles[0],
     [selectedStyle],
   );
+
+  const selectedHistory = useMemo(
+    () =>
+      generationHistory.find((generation) => generation.id === selectedHistoryId) ??
+      generationHistory[0],
+    [generationHistory, selectedHistoryId],
+  );
+
+  useEffect(() => {
+    setGenerationHistory(readSessionHistory());
+    setHistoryReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!historyReady) return;
+
+    window.sessionStorage.setItem(
+      "gaimin-avatar-history",
+      JSON.stringify(generationHistory),
+    );
+  }, [generationHistory, historyReady]);
 
   function track(name: string, data?: Record<string, unknown>) {
     void fetch("/api/analytics", {
@@ -213,7 +272,17 @@ export default function Home() {
         throw new Error(payload.error ?? "Generation failed.");
       }
 
+      const generation: GenerationRecord = {
+        id: crypto.randomUUID(),
+        styleId: activeStyle.id,
+        styleName: activeStyle.name,
+        createdAt: new Date().toISOString(),
+        images: payload.images,
+      };
+
       setResults(payload.images);
+      setGenerationHistory((historyItems) => [generation, ...historyItems]);
+      setSelectedHistoryId(generation.id);
       track("avatar_generate_success", {
         style: activeStyle.id,
         variations: payload.images.length,
@@ -230,28 +299,44 @@ export default function Home() {
     }
   }
 
-  function downloadAll() {
-    results.forEach((result, index) => {
+  function viewHistoryGeneration(generation: GenerationRecord) {
+    setResults(generation.images);
+    setSelectedStyle(generation.styleId);
+    setSelectedHistoryId(generation.id);
+    setViewMode("new");
+    track("avatar_history_view", { style: generation.styleId });
+  }
+
+  function downloadGenerationSet(
+    images: GeneratedAvatar[],
+    styleName: string,
+    filenamePrefix = "gaimin-avatar",
+  ) {
+    images.forEach((result, index) => {
       setTimeout(
         () =>
           downloadImage(
             brandedAvatarSvg(result.imageUrl, result.label),
-            `gaimin-avatar-${index + 1}.svg`,
+            `${filenamePrefix}-${index + 1}.svg`,
           ),
         index * 120,
       );
     });
 
-    if (results[0]) {
+    if (images[0]) {
       setTimeout(
         () =>
           downloadImage(
-            gamerCardSvg(results[0].imageUrl, activeStyle.name),
+            gamerCardSvg(images[0].imageUrl, styleName),
             "gaimin-gamer-card.svg",
           ),
-        results.length * 120,
+        images.length * 120,
       );
     }
+  }
+
+  function downloadAll() {
+    downloadGenerationSet(results, activeStyle.name);
 
     track("avatar_download_all", { count: results.length });
   }
@@ -311,12 +396,42 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-sm text-zinc-300">
-            <BadgeCheck className="h-4 w-4 text-[#c084fc]" />
-            <span>2 premium outputs per generation</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex rounded-lg border border-white/10 bg-black/35 p-1">
+              {(["new", "history"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  className={cn(
+                    "flex h-9 items-center gap-2 rounded-md px-3 text-sm font-black transition",
+                    viewMode === mode
+                      ? "bg-[#8b00ff] text-white shadow-[0_0_24px_rgba(139,0,255,0.28)]"
+                      : "text-zinc-400 hover:bg-white/[0.06] hover:text-white",
+                  )}
+                >
+                  {mode === "new" ? (
+                    <ImagePlus className="h-4 w-4" />
+                  ) : (
+                    <History className="h-4 w-4" />
+                  )}
+                  {mode === "new" ? "New Generation" : "History"}
+                  {mode === "history" && generationHistory.length > 0 && (
+                    <span className="rounded bg-black/35 px-1.5 py-0.5 text-[11px]">
+                      {generationHistory.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3 rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-sm text-zinc-300">
+              <BadgeCheck className="h-4 w-4 text-[#c084fc]" />
+              <span>2 premium outputs per generation</span>
+            </div>
           </div>
         </header>
 
+        {viewMode === "new" ? (
         <div className="grid min-h-[calc(100vh-112px)] gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
           <aside className="flex flex-col gap-4 rounded-lg border border-white/10 bg-[#090712]/88 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-xl">
             <div className="px-2 py-2">
@@ -596,6 +711,198 @@ export default function Home() {
             )}
           </section>
         </div>
+        ) : (
+          <section className="grid min-h-[calc(100vh-112px)] gap-5 lg:grid-cols-[minmax(0,1fr)_390px]">
+            <div className="rounded-lg border border-white/10 bg-[#090712]/88 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-xl sm:p-5">
+              <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10 pb-4">
+                <div>
+                  <p className="inline-flex items-center gap-2 text-xs font-black uppercase text-[#c084fc]">
+                    <History className="h-3.5 w-3.5" />
+                    My Generations
+                  </p>
+                  <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-5xl">
+                    Session history.
+                  </h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                    Every generation from this browser session stays here until the tab
+                    session ends.
+                  </p>
+                </div>
+                <Button type="button" variant="secondary" onClick={() => setViewMode("new")}>
+                  <ImagePlus className="h-4 w-4" />
+                  New
+                </Button>
+              </div>
+
+              {generationHistory.length === 0 ? (
+                <div className="mt-5 flex min-h-[420px] flex-col items-center justify-center rounded-lg border border-dashed border-white/12 bg-black/24 p-6 text-center">
+                  <div className="grid h-16 w-16 place-items-center rounded-lg border border-[#8b00ff]/30 bg-[#8b00ff]/12 text-[#e9d5ff]">
+                    <History className="h-7 w-7" />
+                  </div>
+                  <h2 className="mt-4 text-xl font-black text-white">
+                    No generations yet
+                  </h2>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-400">
+                    Create your first two-avatar set, then come back here to view
+                    and download it again.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {generationHistory.map((generation) => (
+                    <article
+                      key={generation.id}
+                      className={cn(
+                        "overflow-hidden rounded-lg border bg-[#111019] transition",
+                        selectedHistory?.id === generation.id
+                          ? "border-[#8b00ff] shadow-[0_0_36px_rgba(139,0,255,0.2)]"
+                          : "border-white/10 hover:border-white/25",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setSelectedHistoryId(generation.id)}
+                        className="block w-full text-left"
+                      >
+                        <div className="relative aspect-square overflow-hidden bg-black">
+                          <img
+                            src={generation.images[0]?.imageUrl}
+                            alt={`${generation.styleName} generation`}
+                            className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
+                          />
+                          <div className="absolute left-3 top-3 rounded bg-black/70 px-2 py-1 text-[11px] font-black uppercase text-[#e9d5ff] backdrop-blur">
+                            {generation.images.length} outputs
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h2 className="truncate text-sm font-black text-white">
+                            {generation.styleName}
+                          </h2>
+                          <p className="mt-1 text-xs text-zinc-500">
+                            {formatTimestamp(generation.createdAt)}
+                          </p>
+                        </div>
+                      </button>
+                      <div className="grid grid-cols-2 gap-2 border-t border-white/10 p-3">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => viewHistoryGeneration(generation)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            downloadGenerationSet(
+                              generation.images,
+                              generation.styleName,
+                              `gaimin-avatar-${generation.styleId}`,
+                            )
+                          }
+                        >
+                          <Download className="h-4 w-4" />
+                          All
+                        </Button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <aside className="flex flex-col gap-4 rounded-lg border border-white/10 bg-[#090712]/88 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+              <div>
+                <h2 className="text-lg font-black text-white">Selected set</h2>
+                <p className="mt-1 text-sm text-zinc-400">
+                  {selectedHistory
+                    ? `${selectedHistory.styleName} · ${formatTimestamp(selectedHistory.createdAt)}`
+                    : "Choose a generation to preview it."}
+                </p>
+              </div>
+
+              {selectedHistory ? (
+                <>
+                  <div className="grid gap-3">
+                    {selectedHistory.images.map((result, index) => (
+                      <Card key={result.id} className="overflow-hidden">
+                        <div className="relative">
+                          <img
+                            src={result.imageUrl}
+                            alt={result.label}
+                            className="aspect-square w-full object-cover"
+                          />
+                          <div className="absolute bottom-3 left-3 rounded bg-black/65 px-2 py-1 text-xs font-bold text-[#e9d5ff] backdrop-blur">
+                            Made with GAIMIN Avatar AI
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 p-3">
+                          <div>
+                            <p className="text-sm font-bold text-white">
+                              Variation {index + 1}
+                            </p>
+                            <p className="text-xs text-[#c084fc]">
+                              {selectedHistory.styleName}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Download history variation ${index + 1}`}
+                            onClick={() =>
+                              downloadImage(
+                                brandedAvatarSvg(result.imageUrl, result.label),
+                                `gaimin-history-avatar-${index + 1}.svg`,
+                              )
+                            }
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        downloadGenerationSet(
+                          selectedHistory.images,
+                          selectedHistory.styleName,
+                          `gaimin-avatar-${selectedHistory.styleId}`,
+                        )
+                      }
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => viewHistoryGeneration(selectedHistory)}
+                    >
+                      <Trophy className="h-4 w-4" />
+                      View
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="grid gap-3">
+                  {[1, 2].map((slot) => (
+                    <div
+                      key={slot}
+                      className="aspect-square rounded-lg border border-white/10 bg-[linear-gradient(135deg,rgba(139,0,255,0.12),rgba(255,255,255,0.035))]"
+                    />
+                  ))}
+                </div>
+              )}
+            </aside>
+          </section>
+        )}
       </section>
     </main>
   );
