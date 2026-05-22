@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { isAvatarStyleId, styleNamesById } from "@/lib/avatar-styles";
+import { generateAvatarImagesFromDataUri } from "@/lib/ai/provider";
 import { getStylePrompt } from "@/lib/style-prompts";
-import { generateWithXaiDataUri } from "@/lib/xai";
 import type { GeneratedAvatar } from "@/types/avatar";
 
 export const maxDuration = 60;
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     let emailResult = { sent: false };
 
     if (process.env.ENABLE_SYNC_4K_GENERATION === "true") {
-      images = await generateWithXaiDataUri({
+      images = await generateAvatarImagesFromDataUri({
         imageDataUri: sourceImageDataUri,
         prompt,
         styleId,
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "4K unlock failed.";
-    const status = message.includes("XAI_API_KEY") ? 503 : 500;
+    const status = message.includes("GOOGLE_API_KEY") ? 503 : 500;
 
     return NextResponse.json({ error: message }, { status });
   }

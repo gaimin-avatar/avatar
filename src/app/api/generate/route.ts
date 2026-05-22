@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { isAvatarStyleId } from "@/lib/avatar-styles";
+import {
+  generateAvatarImagesFromFile,
+  getAvatarImageProviderId,
+} from "@/lib/ai/provider";
 import { getStylePrompt } from "@/lib/style-prompts";
-import { generateWithXai } from "@/lib/xai";
 
 export const maxDuration = 60;
 
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const prompt = getStylePrompt(style);
-    const images = await generateWithXai({
+    const images = await generateAvatarImagesFromFile({
       image,
       prompt,
       styleId: style,
@@ -45,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      provider: "xai",
+      provider: getAvatarImageProviderId(),
       prompt,
       styleId: style,
       images,
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Image generation failed.";
-    const status = message.includes("XAI_API_KEY") ? 503 : 500;
+    const status = message.includes("GOOGLE_API_KEY") ? 503 : 500;
 
     return NextResponse.json({ error: message }, { status });
   }
