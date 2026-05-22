@@ -2,17 +2,11 @@
 
 import {
   BadgeCheck,
-  Blocks,
-  Crown,
   Download,
-  Gamepad2,
   ImagePlus,
   Loader2,
   Mail,
-  Radio,
   Share2,
-  Shield,
-  Swords,
   Trophy,
   Zap,
 } from "lucide-react";
@@ -24,13 +18,22 @@ import { avatarStyles } from "@/lib/avatar-styles";
 import { cn } from "@/lib/utils";
 import type { AvatarStyleId, GeneratedAvatar } from "@/types/avatar";
 
-const styleIcons: Record<AvatarStyleId, typeof Shield> = {
-  "battle-royale": Shield,
-  "block-world": Blocks,
-  "cyber-esports": Radio,
-  "fantasy-rpg": Crown,
-  "anime-arena": Swords,
-  "pixel-arcade": Gamepad2,
+const styleGlyphs: Record<AvatarStyleId, string> = {
+  "battle-royale": "BR",
+  "block-world": "BW",
+  "cyber-esports": "XP",
+  "fantasy-rpg": "RP",
+  "anime-arena": "AA",
+  "pixel-arcade": "PX",
+};
+
+const styleMotifs: Record<AvatarStyleId, string> = {
+  "battle-royale": "drop-zone vector",
+  "block-world": "voxel compass",
+  "cyber-esports": "neon scrim signal",
+  "fantasy-rpg": "guild relic",
+  "anime-arena": "aura burst",
+  "pixel-arcade": "coin-op badge",
 };
 
 function escapeXml(value: string) {
@@ -52,7 +55,7 @@ function brandedAvatarSvg(imageUrl: string, label: string) {
     <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
       <image href="${escapeXml(imageUrl)}" x="0" y="0" width="1024" height="1024" preserveAspectRatio="xMidYMid slice"/>
       <rect x="0" y="912" width="1024" height="112" fill="rgba(0,0,0,0.48)"/>
-      <text x="52" y="982" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Made with GAIMIN Avatar AI</text>
+      <text x="52" y="982" fill="#c084fc" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Made with GAIMIN Avatar AI</text>
       <text x="972" y="982" text-anchor="end" fill="#ffffff" opacity="0.78" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">${escapeXml(label)}</text>
     </svg>
   `)}`;
@@ -63,19 +66,19 @@ function gamerCardSvg(imageUrl: string, styleName: string) {
     <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
       <defs>
         <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#84cc16"/>
-          <stop offset="46%" stop-color="#09090b"/>
-          <stop offset="100%" stop-color="#22d3ee"/>
+          <stop offset="0%" stop-color="#8b00ff"/>
+          <stop offset="48%" stop-color="#090611"/>
+          <stop offset="100%" stop-color="#00bfff"/>
         </linearGradient>
       </defs>
       <rect width="1400" height="900" rx="44" fill="url(#bg)"/>
       <rect x="44" y="44" width="1312" height="812" rx="32" fill="rgba(0,0,0,0.64)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
       <image href="${escapeXml(imageUrl)}" x="86" y="86" width="728" height="728" preserveAspectRatio="xMidYMid slice"/>
-      <text x="880" y="186" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="900">GAIMIN Avatar AI</text>
+      <text x="880" y="186" fill="#c084fc" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="900">GAIMIN Avatar AI</text>
       <text x="880" y="286" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="900">${escapeXml(styleName)}</text>
       <text x="880" y="382" fill="#d4d4d8" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Next Level Gamer Identity</text>
       <text x="880" y="720" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Made with GAIMIN Avatar AI</text>
-      <text x="880" y="770" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Launcher • GGPL • Club</text>
+      <text x="880" y="770" fill="#c084fc" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Launcher • GGPL • Club</text>
     </svg>
   `)}`;
 }
@@ -90,7 +93,7 @@ function downloadImage(url: string, filename: string) {
 
 export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<AvatarStyleId>("cyber-esports");
-  const [variationCount, setVariationCount] = useState(4);
+  const [variationCount, setVariationCount] = useState(2);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
@@ -236,36 +239,36 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-5 sm:px-8 lg:px-10">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+    <main className="relative min-h-screen overflow-hidden">
+      <section className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-5 sm:px-8 lg:px-10">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-lime-400 text-zinc-950">
-              <Zap className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-lime-300">GAIMIN</p>
-              <h1 className="text-xl font-black tracking-normal text-white">
-                Avatar AI
-              </h1>
+            <div className="flex h-[55px] w-[185px] items-center">
+              <img
+                src="/gaimin-avatar-logo.svg"
+                alt="GAIMIN Avatar AI"
+                className="h-[55px] w-[185px] object-contain"
+              />
             </div>
           </div>
           <div className="flex items-center gap-3 text-sm text-zinc-400">
-            <BadgeCheck className="h-4 w-4 text-lime-300" />
+            <BadgeCheck className="h-4 w-4 text-[#c084fc]" />
             <span>Upload to branded gamer avatar in seconds</span>
           </div>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,1.08fr)]">
           <section className="flex flex-col gap-5">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-lime-300">
+            <div className="relative overflow-hidden rounded-lg border border-white/10 bg-white/[0.03] p-5 sm:p-7">
+              <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#8b00ff]/30 blur-3xl" />
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#8b00ff]/35 bg-[#8b00ff]/12 px-3 py-1 text-xs font-bold uppercase text-[#d8b4fe]">
+                <Zap className="h-3.5 w-3.5" />
                 avatar.gaimin.gg
               </p>
-              <h2 className="max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
+              <h2 className="relative max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
                 Generate your game-ready identity.
               </h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300">
+              <p className="relative mt-4 max-w-2xl text-base leading-7 text-zinc-300">
                 Upload a selfie or profile picture, choose a gaming style, and
                 export branded avatars built for sharing.
               </p>
@@ -274,17 +277,17 @@ export default function Home() {
             <Card className="p-4">
               <label
                 htmlFor="avatar-upload"
-                className="flex min-h-72 cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-zinc-700 bg-zinc-900/60 p-6 text-center transition hover:border-lime-300"
+                className="flex min-h-72 cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-white/15 bg-black/25 p-6 text-center transition hover:border-[#8b00ff]"
               >
                 {previewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={previewUrl}
                     alt="Uploaded avatar preview"
-                    className="h-44 w-44 rounded-lg object-cover"
+                    className="h-44 w-44 rounded-lg border border-white/10 object-cover shadow-[0_0_44px_rgba(139,0,255,0.18)]"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-md bg-zinc-800 text-lime-300">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-md border border-white/10 bg-[#8b00ff]/15 text-[#d8b4fe]">
                     <ImagePlus className="h-8 w-8" />
                   </div>
                 )}
@@ -321,8 +324,8 @@ export default function Home() {
                       className={cn(
                         "h-10 w-10 rounded-md border text-sm font-bold transition",
                         variationCount === count
-                          ? "border-lime-300 bg-lime-300 text-zinc-950"
-                          : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500",
+                          ? "border-[#8b00ff] bg-[#8b00ff] text-white shadow-[0_0_22px_rgba(139,0,255,0.32)]"
+                          : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-white/30",
                       )}
                     >
                       {count}
@@ -334,9 +337,8 @@ export default function Home() {
           </section>
 
           <section className="flex flex-col gap-5">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0710]/82">
               {avatarStyles.map((style) => {
-                const Icon = styleIcons[style.id];
                 const isSelected = selectedStyle === style.id;
 
                 return (
@@ -345,24 +347,42 @@ export default function Home() {
                     type="button"
                     onClick={() => setSelectedStyle(style.id)}
                     className={cn(
-                      "group rounded-lg border bg-zinc-950 p-4 text-left transition",
+                      "group relative flex min-h-[78px] items-center gap-3 border-b border-white/10 px-3 py-3 text-left transition last:border-b-0 sm:px-4",
                       isSelected
-                        ? "border-lime-300 shadow-[0_0_0_1px_rgba(190,242,100,0.8)]"
-                        : "border-zinc-800 hover:border-zinc-600",
+                        ? "bg-[#8b00ff]/16 shadow-[inset_3px_0_0_#8b00ff]"
+                        : "hover:bg-white/[0.045]",
                     )}
                   >
                     <div
                       className={cn(
-                        "mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br text-zinc-950",
+                        "relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-gradient-to-br text-xs font-black text-white shadow-[0_12px_32px_rgba(0,0,0,0.28)]",
                         style.accent,
                       )}
                     >
-                      <Icon className="h-6 w-6" />
+                      <span className="absolute inset-x-1 top-2 h-px bg-white/50" />
+                      <span className="absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-white/75" />
+                      <span className="absolute bottom-2 right-2 h-1.5 w-4 rounded-full bg-black/35" />
+                      <span className="relative">{styleGlyphs[style.id]}</span>
                     </div>
-                    <h3 className="font-black text-white">{style.name}</h3>
-                    <p className="mt-1 text-sm text-zinc-400">
-                      {style.description}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <h3 className="font-black text-white">{style.name}</h3>
+                        <span className="text-[11px] font-bold uppercase text-[#c084fc]">
+                          {styleMotifs[style.id]}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-zinc-400">
+                        {style.description}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "h-2.5 w-2.5 shrink-0 rounded-full border",
+                        isSelected
+                          ? "border-[#c084fc] bg-[#8b00ff] shadow-[0_0_18px_rgba(139,0,255,0.75)]"
+                          : "border-white/20 bg-white/5",
+                      )}
+                    />
                   </button>
                 );
               })}
@@ -427,7 +447,7 @@ export default function Home() {
                           alt={result.label}
                           className="aspect-square w-full object-cover"
                         />
-                        <div className="absolute bottom-3 left-3 rounded bg-black/55 px-2 py-1 text-xs font-bold text-lime-200">
+                        <div className="absolute bottom-3 left-3 rounded bg-black/65 px-2 py-1 text-xs font-bold text-[#e9d5ff] backdrop-blur">
                           Made with GAIMIN Avatar AI
                         </div>
                       </div>
@@ -436,7 +456,7 @@ export default function Home() {
                           <p className="text-sm font-bold text-white">
                             Variation {index + 1}
                           </p>
-                          <p className="text-xs text-lime-300">Made with GAIMIN</p>
+                          <p className="text-xs text-[#c084fc]">Made with GAIMIN</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -470,7 +490,7 @@ export default function Home() {
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
                         placeholder="player@email.com"
-                        className="h-11 w-full rounded-md border border-zinc-700 bg-zinc-900 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-lime-300"
+                        className="h-11 w-full rounded-md border border-white/10 bg-black/35 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-[#8b00ff]"
                       />
                     </div>
                     <Button type="button" variant="secondary" onClick={captureEmail}>
@@ -478,7 +498,7 @@ export default function Home() {
                     </Button>
                   </div>
                   {emailStatus && (
-                    <p className="text-sm font-semibold text-lime-300">
+                    <p className="text-sm font-semibold text-[#c084fc]">
                       {emailStatus}
                     </p>
                   )}
