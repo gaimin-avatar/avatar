@@ -2,17 +2,11 @@
 
 import {
   BadgeCheck,
-  Blocks,
-  Crown,
   Download,
-  Gamepad2,
   ImagePlus,
   Loader2,
   Mail,
-  Radio,
   Share2,
-  Shield,
-  Swords,
   Trophy,
   Zap,
 } from "lucide-react";
@@ -24,14 +18,83 @@ import { avatarStyles } from "@/lib/avatar-styles";
 import { cn } from "@/lib/utils";
 import type { AvatarStyleId, GeneratedAvatar } from "@/types/avatar";
 
-const styleIcons: Record<AvatarStyleId, typeof Shield> = {
-  "battle-royale": Shield,
-  "block-world": Blocks,
-  "cyber-esports": Radio,
-  "fantasy-rpg": Crown,
-  "anime-arena": Swords,
-  "pixel-arcade": Gamepad2,
+const styleMotifs: Record<AvatarStyleId, string> = {
+  "battle-royale": "drop-zone vector",
+  "block-world": "voxel compass",
+  "cyber-esports": "neon scrim signal",
+  "fantasy-rpg": "guild relic",
+  "anime-arena": "aura burst",
+  "pixel-arcade": "coin-op badge",
 };
+
+function StyleSigil({ id }: { id: AvatarStyleId }) {
+  const common = "drop-shadow-[0_10px_26px_rgba(139,0,255,0.38)]";
+
+  if (id === "battle-royale") {
+    return (
+      <svg viewBox="0 0 64 64" className={cn("h-9 w-9", common)} aria-hidden>
+        <path d="M32 7 49 20v14c0 12-7 20-17 24-10-4-17-12-17-24V20L32 7Z" fill="url(#br)" />
+        <path d="M32 18v28M18 32h28" stroke="white" strokeWidth="3" strokeLinecap="round" opacity=".9" />
+        <circle cx="32" cy="32" r="9" fill="none" stroke="#09060f" strokeWidth="3" opacity=".85" />
+        <defs><linearGradient id="br" x1="11" x2="53" y1="9" y2="56"><stop stopColor="#ff406d"/><stop offset="1" stopColor="#8b00ff"/></linearGradient></defs>
+      </svg>
+    );
+  }
+
+  if (id === "block-world") {
+    return (
+      <svg viewBox="0 0 64 64" className={cn("h-9 w-9", common)} aria-hidden>
+        <path d="m20 20 12-7 12 7-12 7-12-7Z" fill="#93f4ff" />
+        <path d="M20 20v15l12 7V27L20 20Z" fill="#725cff" />
+        <path d="M44 20v15l-12 7V27l12-7Z" fill="#18c8ff" />
+        <path d="m11 38 10-6 10 6-10 6-10-6Zm22 6 10-6 10 6-10 6-10-6Z" fill="#c6ff6b" />
+        <path d="M21 44v10l-10-6V38l10 6Zm22 6v10l10-6V44l-10 6Z" fill="#725cff" opacity=".95" />
+      </svg>
+    );
+  }
+
+  if (id === "cyber-esports") {
+    return (
+      <svg viewBox="0 0 64 64" className={cn("h-9 w-9", common)} aria-hidden>
+        <path d="M13 36c0-13 8-23 19-23s19 10 19 23" fill="none" stroke="url(#xp)" strokeWidth="6" strokeLinecap="round" />
+        <path d="M16 35h8v14h-8a5 5 0 0 1-5-5v-4a5 5 0 0 1 5-5Zm32 0h-8v14h8a5 5 0 0 0 5-5v-4a5 5 0 0 0-5-5Z" fill="#111827" stroke="#9d7cff" strokeWidth="3" />
+        <path d="M29 49h8m-17-8h4m16 0h4" stroke="#20d8ff" strokeWidth="3" strokeLinecap="round" />
+        <defs><linearGradient id="xp" x1="9" x2="55" y1="17" y2="39"><stop stopColor="#8b00ff"/><stop offset="1" stopColor="#20d8ff"/></linearGradient></defs>
+      </svg>
+    );
+  }
+
+  if (id === "fantasy-rpg") {
+    return (
+      <svg viewBox="0 0 64 64" className={cn("h-9 w-9", common)} aria-hidden>
+        <path d="M32 5 44 23 32 58 20 23 32 5Z" fill="url(#rp)" />
+        <path d="M20 23h24M32 5v53M14 48l9-9M50 48l-9-9" stroke="white" strokeWidth="3" strokeLinecap="round" opacity=".8" />
+        <path d="m32 18 5 8-5 8-5-8 5-8Z" fill="#09060f" opacity=".72" />
+        <defs><linearGradient id="rp" x1="19" x2="45" y1="6" y2="58"><stop stopColor="#ffd166"/><stop offset=".48" stopColor="#c084fc"/><stop offset="1" stopColor="#8b00ff"/></linearGradient></defs>
+      </svg>
+    );
+  }
+
+  if (id === "anime-arena") {
+    return (
+      <svg viewBox="0 0 64 64" className={cn("h-9 w-9", common)} aria-hidden>
+        <path d="M32 6 37 25l18-8-10 17 15 11-20 1-8 12-8-12-20-1 15-11L9 17l18 8L32 6Z" fill="url(#aa)" />
+        <path d="M18 45 46 17M24 52l22-22" stroke="#09060f" strokeWidth="4" strokeLinecap="round" opacity=".78" />
+        <path d="M17 45 45 17" stroke="white" strokeWidth="2" strokeLinecap="round" opacity=".88" />
+        <defs><linearGradient id="aa" x1="7" x2="57" y1="8" y2="58"><stop stopColor="#ff7ad9"/><stop offset=".5" stopColor="#8b00ff"/><stop offset="1" stopColor="#ff8a3d"/></linearGradient></defs>
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 64 64" className={cn("h-9 w-9", common)} aria-hidden>
+      <path d="M13 15h38v34H13V15Z" fill="url(#px)" />
+      <path d="M20 22h7v7h-7v-7Zm17 0h7v7h-7v-7ZM20 37h7v7h-7v-7Zm17 0h7v7h-7v-7Z" fill="#09060f" opacity=".8" />
+      <path d="M11 9h11v6H11V9Zm31 40h11v6H42v-6ZM7 27h6v11H7V27Zm44-11h6v11h-6V16Z" fill="#c6ff6b" />
+      <defs><linearGradient id="px" x1="12" x2="52" y1="15" y2="49"><stop stopColor="#f472b6"/><stop offset=".5" stopColor="#8b00ff"/><stop offset="1" stopColor="#20d8ff"/></linearGradient></defs>
+    </svg>
+  );
+}
 
 function escapeXml(value: string) {
   return value.replace(/[<>&'"]/g, (character) => {
@@ -52,7 +115,7 @@ function brandedAvatarSvg(imageUrl: string, label: string) {
     <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
       <image href="${escapeXml(imageUrl)}" x="0" y="0" width="1024" height="1024" preserveAspectRatio="xMidYMid slice"/>
       <rect x="0" y="912" width="1024" height="112" fill="rgba(0,0,0,0.48)"/>
-      <text x="52" y="982" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Made with GAIMIN Avatar AI</text>
+      <text x="52" y="982" fill="#c084fc" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Made with GAIMIN Avatar AI</text>
       <text x="972" y="982" text-anchor="end" fill="#ffffff" opacity="0.78" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">${escapeXml(label)}</text>
     </svg>
   `)}`;
@@ -63,19 +126,19 @@ function gamerCardSvg(imageUrl: string, styleName: string) {
     <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
       <defs>
         <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#84cc16"/>
-          <stop offset="46%" stop-color="#09090b"/>
-          <stop offset="100%" stop-color="#22d3ee"/>
+          <stop offset="0%" stop-color="#8b00ff"/>
+          <stop offset="48%" stop-color="#090611"/>
+          <stop offset="100%" stop-color="#00bfff"/>
         </linearGradient>
       </defs>
       <rect width="1400" height="900" rx="44" fill="url(#bg)"/>
       <rect x="44" y="44" width="1312" height="812" rx="32" fill="rgba(0,0,0,0.64)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
       <image href="${escapeXml(imageUrl)}" x="86" y="86" width="728" height="728" preserveAspectRatio="xMidYMid slice"/>
-      <text x="880" y="186" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="900">GAIMIN Avatar AI</text>
+      <text x="880" y="186" fill="#c084fc" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="900">GAIMIN Avatar AI</text>
       <text x="880" y="286" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="900">${escapeXml(styleName)}</text>
       <text x="880" y="382" fill="#d4d4d8" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Next Level Gamer Identity</text>
       <text x="880" y="720" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Made with GAIMIN Avatar AI</text>
-      <text x="880" y="770" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Launcher • GGPL • Club</text>
+      <text x="880" y="770" fill="#c084fc" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Launcher • GGPL • Club</text>
     </svg>
   `)}`;
 }
@@ -90,7 +153,7 @@ function downloadImage(url: string, filename: string) {
 
 export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<AvatarStyleId>("cyber-esports");
-  const [variationCount, setVariationCount] = useState(4);
+  const variationCount = 2;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
@@ -236,107 +299,41 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-5 sm:px-8 lg:px-10">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+    <main className="relative min-h-screen overflow-hidden bg-[#050408]">
+      <section className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 py-4 sm:px-6 lg:px-8">
+        <header className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-white/10 bg-black/30 px-4 py-3 shadow-[0_24px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-lime-400 text-zinc-950">
-              <Zap className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-lime-300">GAIMIN</p>
-              <h1 className="text-xl font-black tracking-normal text-white">
-                Avatar AI
-              </h1>
+            <div className="flex h-[55px] w-[185px] items-center">
+              <img
+                src="/gaimin-avatar-logo.svg"
+                alt="GAIMIN Avatar AI"
+                className="h-[55px] w-[185px] object-contain"
+              />
             </div>
           </div>
-          <div className="flex items-center gap-3 text-sm text-zinc-400">
-            <BadgeCheck className="h-4 w-4 text-lime-300" />
-            <span>Upload to branded gamer avatar in seconds</span>
+          <div className="flex items-center gap-3 rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-sm text-zinc-300">
+            <BadgeCheck className="h-4 w-4 text-[#c084fc]" />
+            <span>2 premium outputs per generation</span>
           </div>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,1.08fr)]">
-          <section className="flex flex-col gap-5">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-lime-300">
+        <div className="grid min-h-[calc(100vh-112px)] gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <aside className="flex flex-col gap-4 rounded-lg border border-white/10 bg-[#090712]/88 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+            <div className="px-2 py-2">
+              <p className="inline-flex items-center gap-2 text-xs font-black uppercase text-[#c084fc]">
+                <Zap className="h-3.5 w-3.5" />
                 avatar.gaimin.gg
               </p>
-              <h2 className="max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
-                Generate your game-ready identity.
-              </h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300">
-                Upload a selfie or profile picture, choose a gaming style, and
-                export branded avatars built for sharing.
+              <h1 className="mt-2 text-2xl font-black leading-tight text-white">
+                Build a gamer identity.
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-zinc-400">
+                Pick one visual lane. GAIMIN generates exactly two branded avatars.
               </p>
             </div>
 
-            <Card className="p-4">
-              <label
-                htmlFor="avatar-upload"
-                className="flex min-h-72 cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-zinc-700 bg-zinc-900/60 p-6 text-center transition hover:border-lime-300"
-              >
-                {previewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={previewUrl}
-                    alt="Uploaded avatar preview"
-                    className="h-44 w-44 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-md bg-zinc-800 text-lime-300">
-                    <ImagePlus className="h-8 w-8" />
-                  </div>
-                )}
-                <div>
-                  <p className="font-bold text-white">
-                    {fileName || "Upload selfie, avatar, or profile picture"}
-                  </p>
-                  <p className="mt-1 text-sm text-zinc-400">
-                    PNG, JPG, or WEBP. Keep the face visible for best output.
-                  </p>
-                </div>
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="sr-only"
-                  onChange={(event) => handleUpload(event.target.files?.[0])}
-                />
-              </label>
-            </Card>
-
-            <Card className="p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-bold text-white">Variations</h3>
-                  <p className="text-sm text-zinc-400">Generate 1 to 4 outputs.</p>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((count) => (
-                    <button
-                      key={count}
-                      type="button"
-                      onClick={() => setVariationCount(count)}
-                      className={cn(
-                        "h-10 w-10 rounded-md border text-sm font-bold transition",
-                        variationCount === count
-                          ? "border-lime-300 bg-lime-300 text-zinc-950"
-                          : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500",
-                      )}
-                    >
-                      {count}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          </section>
-
-          <section className="flex flex-col gap-5">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col overflow-hidden rounded-lg border border-white/10 bg-black/28">
               {avatarStyles.map((style) => {
-                const Icon = styleIcons[style.id];
                 const isSelected = selectedStyle === style.id;
 
                 return (
@@ -345,41 +342,133 @@ export default function Home() {
                     type="button"
                     onClick={() => setSelectedStyle(style.id)}
                     className={cn(
-                      "group rounded-lg border bg-zinc-950 p-4 text-left transition",
+                      "group relative flex min-h-[76px] items-center gap-3 border-b border-white/10 px-3 py-3 text-left transition last:border-b-0",
                       isSelected
-                        ? "border-lime-300 shadow-[0_0_0_1px_rgba(190,242,100,0.8)]"
-                        : "border-zinc-800 hover:border-zinc-600",
+                        ? "bg-[#8b00ff]/18 shadow-[inset_3px_0_0_#8b00ff]"
+                        : "hover:bg-white/[0.05]",
                     )}
                   >
                     <div
                       className={cn(
-                        "mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br text-zinc-950",
+                        "grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br shadow-[0_12px_32px_rgba(0,0,0,0.3)]",
                         style.accent,
                       )}
                     >
-                      <Icon className="h-6 w-6" />
+                      <StyleSigil id={style.id} />
                     </div>
-                    <h3 className="font-black text-white">{style.name}</h3>
-                    <p className="mt-1 text-sm text-zinc-400">
-                      {style.description}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <h3 className="font-black text-white">{style.name}</h3>
+                        <span className="text-[11px] font-bold uppercase text-[#c084fc]">
+                          {styleMotifs[style.id]}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-zinc-400">
+                        {style.description}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "h-2.5 w-2.5 shrink-0 rounded-full border transition",
+                        isSelected
+                          ? "border-[#c084fc] bg-[#8b00ff] shadow-[0_0_18px_rgba(139,0,255,0.75)]"
+                          : "border-white/20 bg-white/5",
+                      )}
+                    />
                   </button>
                 );
               })}
             </div>
 
-            <Card className="p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="grid grid-cols-2 gap-2 px-1">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+                <p className="text-[11px] font-black uppercase text-zinc-500">
+                  Outputs
+                </p>
+                <p className="mt-1 text-2xl font-black text-white">2</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+                <p className="text-[11px] font-black uppercase text-zinc-500">
+                  Branding
+                </p>
+                <p className="mt-1 text-sm font-black text-[#d8b4fe]">GAIMIN</p>
+              </div>
+            </div>
+          </aside>
+
+          <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_390px]">
+            <div className="flex min-h-[540px] flex-col rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(18,10,33,0.94),rgba(3,5,9,0.96))] p-4 shadow-[0_34px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
                 <div>
-                  <h3 className="font-bold text-white">Ready to generate</h3>
-                  <p className="text-sm text-zinc-400">
-                    {activeStyle.name} x {variationCount}
+                  <p className="text-xs font-black uppercase text-[#c084fc]">
+                    {activeStyle.name}
+                  </p>
+                  <h2 className="mt-1 text-3xl font-black leading-tight text-white sm:text-5xl">
+                    Generate your game-ready identity.
+                  </h2>
+                </div>
+                <div
+                  className={cn(
+                    "grid h-16 w-16 place-items-center rounded-lg border border-white/10 bg-gradient-to-br",
+                    activeStyle.accent,
+                  )}
+                >
+                  <StyleSigil id={activeStyle.id} />
+                </div>
+              </div>
+
+              <label
+                htmlFor="avatar-upload"
+                className="group relative mt-4 flex flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/15 bg-black/28 p-5 text-center transition hover:border-[#8b00ff]"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,0,255,0.22),transparent_42%),linear-gradient(135deg,rgba(255,255,255,0.055),transparent_35%)] opacity-90" />
+                {previewUrl ? (
+                  <div className="relative flex w-full max-w-xl flex-col items-center gap-4">
+                    <img
+                      src={previewUrl}
+                      alt="Uploaded avatar preview"
+                      className="aspect-square w-full max-w-[430px] rounded-lg border border-white/10 object-cover shadow-[0_0_70px_rgba(139,0,255,0.23)]"
+                    />
+                    <p className="max-w-full truncate text-sm font-bold text-zinc-300">
+                      {fileName}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative flex max-w-md flex-col items-center gap-4">
+                    <div className="grid h-20 w-20 place-items-center rounded-lg border border-[#8b00ff]/35 bg-[#8b00ff]/15 text-[#e9d5ff] shadow-[0_0_60px_rgba(139,0,255,0.2)] transition group-hover:scale-[1.03]">
+                      <ImagePlus className="h-9 w-9" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-black text-white">
+                        Drop in a selfie or profile picture
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-zinc-400">
+                        PNG, JPG, or WEBP. Clear face framing gives the best AI output.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(event) => handleUpload(event.target.files?.[0])}
+                />
+              </label>
+
+              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-white/10 bg-black/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <h3 className="font-black text-white">Ready to generate</h3>
+                  <p className="truncate text-sm text-zinc-400">
+                    {activeStyle.name} · 2 variations · watermark included
                   </p>
                 </div>
                 <Button
                   type="button"
                   onClick={handleGenerate}
                   disabled={!selectedFile || isGenerating}
+                  className="min-w-40"
                 >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -392,12 +481,12 @@ export default function Home() {
               {error && (
                 <p className="mt-3 text-sm font-semibold text-red-300">{error}</p>
               )}
-            </Card>
+            </div>
 
             {results.length > 0 && (
-              <section className="flex flex-col gap-4">
+              <section className="flex flex-col gap-4 rounded-lg border border-white/10 bg-[#090712]/88 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-lg font-black text-white">Generated avatars</h3>
+                  <h3 className="text-lg font-black text-white">Output deck</h3>
                   <div className="flex flex-wrap gap-2">
                     <Button variant="secondary" size="sm" onClick={downloadAll}>
                       <Download className="h-4 w-4" />
@@ -418,7 +507,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3">
                   {results.map((result, index) => (
                     <Card key={result.id} className="overflow-hidden">
                       <div className="relative">
@@ -427,7 +516,7 @@ export default function Home() {
                           alt={result.label}
                           className="aspect-square w-full object-cover"
                         />
-                        <div className="absolute bottom-3 left-3 rounded bg-black/55 px-2 py-1 text-xs font-bold text-lime-200">
+                        <div className="absolute bottom-3 left-3 rounded bg-black/65 px-2 py-1 text-xs font-bold text-[#e9d5ff] backdrop-blur">
                           Made with GAIMIN Avatar AI
                         </div>
                       </div>
@@ -436,7 +525,7 @@ export default function Home() {
                           <p className="text-sm font-bold text-white">
                             Variation {index + 1}
                           </p>
-                          <p className="text-xs text-lime-300">Made with GAIMIN</p>
+                          <p className="text-xs text-[#c084fc]">Made with GAIMIN</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -455,14 +544,14 @@ export default function Home() {
                     </Card>
                   ))}
                 </div>
-                <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <Card className="flex flex-col gap-3 p-4">
                   <div className="flex-1">
                     <h3 className="font-bold text-white">Next Level</h3>
                     <p className="text-sm text-zinc-400">
                       Get launch updates for GAIMIN Launcher, GGPL, and Club.
                     </p>
                   </div>
-                  <div className="flex min-w-0 flex-1 gap-2">
+                  <div className="flex min-w-0 gap-2">
                     <div className="relative min-w-0 flex-1">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                       <input
@@ -470,7 +559,7 @@ export default function Home() {
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
                         placeholder="player@email.com"
-                        className="h-11 w-full rounded-md border border-zinc-700 bg-zinc-900 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-lime-300"
+                        className="h-11 w-full rounded-md border border-white/10 bg-black/35 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-[#8b00ff]"
                       />
                     </div>
                     <Button type="button" variant="secondary" onClick={captureEmail}>
@@ -478,12 +567,32 @@ export default function Home() {
                     </Button>
                   </div>
                   {emailStatus && (
-                    <p className="text-sm font-semibold text-lime-300">
+                    <p className="text-sm font-semibold text-[#c084fc]">
                       {emailStatus}
                     </p>
                   )}
                 </Card>
               </section>
+            )}
+
+            {results.length === 0 && (
+              <aside className="flex flex-col justify-between rounded-lg border border-white/10 bg-[#090712]/88 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+                <div>
+                  <h3 className="text-lg font-black text-white">Output deck</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    Your two generated avatars appear here with download, gamer card,
+                    and share controls.
+                  </p>
+                </div>
+                <div className="mt-6 grid gap-3">
+                  {[1, 2].map((slot) => (
+                    <div
+                      key={slot}
+                      className="aspect-square rounded-lg border border-white/10 bg-[linear-gradient(135deg,rgba(139,0,255,0.12),rgba(255,255,255,0.035))]"
+                    />
+                  ))}
+                </div>
+              </aside>
             )}
           </section>
         </div>
