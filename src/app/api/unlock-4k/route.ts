@@ -14,6 +14,8 @@ type UnlockRequest = {
   variations?: number;
 };
 
+type UnlockImage = Pick<GeneratedAvatar, "imageUrl" | "label">;
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -114,24 +116,38 @@ export async function POST(request: NextRequest) {
     }
 
     const prompt = getStylePrompt(styleId);
-    const images = await generateWithXaiDataUri({
-      imageDataUri: sourceImageDataUri,
-      prompt,
-      styleId,
-      variations,
-      qualityMode: "hd",
-    });
-
     const styleName = styleNamesById[styleId];
-    const emailResult = await sendUnlockEmail({ email, styleName, images });
+    let images: GeneratedAvatar[] = [];
+    let emailResult = { sent: false };
+
+    if (process.env.ENABLE_SYNC_4K_GENERATION === "true") {
+      images = await generateWithXaiDataUri({
+        imageDataUri: sourceImageDataUri,
+        prompt,
+        styleId,
+        variations,
+        qualityMode: "hd",
+      });
+
+      emailResult = await sendUnlockEmail({ email, styleName, images });
+    } else {
+      console.info("gaimin-avatar-4k-unlock-requested", {
+        email,
+        styleId,
+        styleName,
+        variations,
+        requestedAt: new Date().toISOString(),
+        note: "Set ENABLE_SYNC_4K_GENERATION=true with RESEND_API_KEY and UNLOCK_EMAIL_FROM to generate and email HD download links synchronously.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
       emailSent: emailResult.sent,
-      images,
+      images: images satisfies UnlockImage[],
       message: emailResult.sent
         ? "Check your email for your 4K HD avatar downloads."
-        : "4K HD avatars generated. Email delivery is pending provider setup.",
+        : "You're on the 4K HD list. We'll email your upgraded avatar downloads when HD delivery is enabled.",
     });
   } catch (error) {
     const message =

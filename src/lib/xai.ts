@@ -11,6 +11,23 @@ type XaiImageResponse = {
   };
 };
 
+async function parseXaiImageResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) return {} as XaiImageResponse;
+
+  try {
+    return JSON.parse(text) as XaiImageResponse;
+  } catch {
+    const clippedText = text.slice(0, 220);
+    throw new Error(
+      response.ok
+        ? "xAI returned an unreadable image response."
+        : `xAI image generation failed (${response.status}): ${clippedText}`,
+    );
+  }
+}
+
 function getContentType(file: File) {
   return file.type || "image/png";
 }
@@ -110,7 +127,7 @@ export async function generateWithXaiDataUri({
       body: JSON.stringify(body),
     });
 
-    const payload = (await response.json()) as XaiImageResponse;
+    const payload = await parseXaiImageResponse(response);
 
     if (!response.ok) {
       throw new Error(

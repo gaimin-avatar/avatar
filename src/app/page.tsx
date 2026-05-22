@@ -279,6 +279,25 @@ function encodeSharePayload(payload: SharePayload) {
     .replaceAll("=", "");
 }
 
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text) as {
+      message?: string;
+      error?: string;
+    };
+  } catch {
+    return {
+      error: response.ok
+        ? "Unexpected server response."
+        : text.slice(0, 180) || `Request failed (${response.status}).`,
+    };
+  }
+}
+
 function GlassPanel({
   children,
   className,
@@ -554,10 +573,7 @@ export default function Home() {
           variations: results.length || 2,
         }),
       });
-      const payload = (await response.json()) as {
-        message?: string;
-        error?: string;
-      };
+      const payload = await readJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(payload.error ?? "4K unlock failed.");
