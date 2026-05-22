@@ -8,7 +8,9 @@ import {
   Gamepad2,
   ImagePlus,
   Loader2,
+  Mail,
   Radio,
+  Share2,
   Shield,
   Swords,
   Trophy,
@@ -18,47 +20,9 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { avatarStyles } from "@/lib/avatar-styles";
 import { cn } from "@/lib/utils";
-import type { AvatarStyle, AvatarStyleId, GeneratedAvatar } from "@/types/avatar";
-
-const styles: AvatarStyle[] = [
-  {
-    id: "battle-royale",
-    name: "Battle Royale Hero",
-    description: "cinematic squad-leader energy",
-    accent: "from-amber-300 to-red-500",
-  },
-  {
-    id: "block-world",
-    name: "Block World Adventurer",
-    description: "chunky explorer, bright loot colors",
-    accent: "from-emerald-300 to-sky-400",
-  },
-  {
-    id: "cyber-esports",
-    name: "Cyber Esports Pro",
-    description: "neon jersey, arena lighting",
-    accent: "from-cyan-300 to-fuchsia-500",
-  },
-  {
-    id: "fantasy-rpg",
-    name: "Fantasy RPG Champion",
-    description: "legendary armor and guild prestige",
-    accent: "from-violet-300 to-yellow-300",
-  },
-  {
-    id: "anime-arena",
-    name: "Anime Arena Fighter",
-    description: "bold linework and power aura",
-    accent: "from-rose-300 to-indigo-400",
-  },
-  {
-    id: "pixel-arcade",
-    name: "Pixel Arcade Legend",
-    description: "retro icon with high-score swagger",
-    accent: "from-lime-300 to-orange-400",
-  },
-];
+import type { AvatarStyleId, GeneratedAvatar } from "@/types/avatar";
 
 const styleIcons: Record<AvatarStyleId, typeof Shield> = {
   "battle-royale": Shield,
@@ -68,6 +32,53 @@ const styleIcons: Record<AvatarStyleId, typeof Shield> = {
   "anime-arena": Swords,
   "pixel-arcade": Gamepad2,
 };
+
+function escapeXml(value: string) {
+  return value.replace(/[<>&'"]/g, (character) => {
+    const entities: Record<string, string> = {
+      "<": "&lt;",
+      ">": "&gt;",
+      "&": "&amp;",
+      "'": "&apos;",
+      '"': "&quot;",
+    };
+
+    return entities[character];
+  });
+}
+
+function brandedAvatarSvg(imageUrl: string, label: string) {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+      <image href="${escapeXml(imageUrl)}" x="0" y="0" width="1024" height="1024" preserveAspectRatio="xMidYMid slice"/>
+      <rect x="0" y="912" width="1024" height="112" fill="rgba(0,0,0,0.48)"/>
+      <text x="52" y="982" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Made with GAIMIN Avatar AI</text>
+      <text x="972" y="982" text-anchor="end" fill="#ffffff" opacity="0.78" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">${escapeXml(label)}</text>
+    </svg>
+  `)}`;
+}
+
+function gamerCardSvg(imageUrl: string, styleName: string) {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#84cc16"/>
+          <stop offset="46%" stop-color="#09090b"/>
+          <stop offset="100%" stop-color="#22d3ee"/>
+        </linearGradient>
+      </defs>
+      <rect width="1400" height="900" rx="44" fill="url(#bg)"/>
+      <rect x="44" y="44" width="1312" height="812" rx="32" fill="rgba(0,0,0,0.64)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+      <image href="${escapeXml(imageUrl)}" x="86" y="86" width="728" height="728" preserveAspectRatio="xMidYMid slice"/>
+      <text x="880" y="186" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="900">GAIMIN Avatar AI</text>
+      <text x="880" y="286" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="900">${escapeXml(styleName)}</text>
+      <text x="880" y="382" fill="#d4d4d8" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Next Level Gamer Identity</text>
+      <text x="880" y="720" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Made with GAIMIN Avatar AI</text>
+      <text x="880" y="770" fill="#d9f99d" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Launcher • GGPL • Club</text>
+    </svg>
+  `)}`;
+}
 
 function downloadImage(url: string, filename: string) {
   const anchor = document.createElement("a");
@@ -86,11 +97,22 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<GeneratedAvatar[]>([]);
   const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailStatus, setEmailStatus] = useState("");
 
   const activeStyle = useMemo(
-    () => styles.find((style) => style.id === selectedStyle) ?? styles[0],
+    () =>
+      avatarStyles.find((style) => style.id === selectedStyle) ?? avatarStyles[0],
     [selectedStyle],
   );
+
+  function track(name: string, data?: Record<string, unknown>) {
+    void fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, data }),
+    }).catch(() => undefined);
+  }
 
   function handleUpload(file?: File) {
     if (!file) return;
@@ -99,6 +121,7 @@ export default function Home() {
     setPreviewUrl(URL.createObjectURL(file));
     setResults([]);
     setError("");
+    track("avatar_upload", { type: file.type, size: file.size });
   }
 
   async function handleGenerate() {
@@ -128,12 +151,17 @@ export default function Home() {
       }
 
       setResults(payload.images);
+      track("avatar_generate_success", {
+        style: activeStyle.id,
+        variations: payload.images.length,
+      });
     } catch (generationError) {
       setError(
         generationError instanceof Error
           ? generationError.message
           : "Generation failed.",
       );
+      track("avatar_generate_error", { style: activeStyle.id });
     } finally {
       setIsGenerating(false);
     }
@@ -142,10 +170,69 @@ export default function Home() {
   function downloadAll() {
     results.forEach((result, index) => {
       setTimeout(
-        () => downloadImage(result.imageUrl, `gaimin-avatar-${index + 1}.jpg`),
+        () =>
+          downloadImage(
+            brandedAvatarSvg(result.imageUrl, result.label),
+            `gaimin-avatar-${index + 1}.svg`,
+          ),
         index * 120,
       );
     });
+
+    if (results[0]) {
+      setTimeout(
+        () =>
+          downloadImage(
+            gamerCardSvg(results[0].imageUrl, activeStyle.name),
+            "gaimin-gamer-card.svg",
+          ),
+        results.length * 120,
+      );
+    }
+
+    track("avatar_download_all", { count: results.length });
+  }
+
+  function downloadGamerCard() {
+    const primary = results[0];
+    if (!primary) return;
+
+    downloadImage(
+      gamerCardSvg(primary.imageUrl, activeStyle.name),
+      "gaimin-gamer-card.svg",
+    );
+    track("avatar_download_gamer_card", { style: activeStyle.id });
+  }
+
+  async function shareAvatar() {
+    const shareData = {
+      title: "GAIMIN Avatar AI",
+      text: "I made a game-ready avatar with GAIMIN Avatar AI.",
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+    }
+
+    track("avatar_share", { style: activeStyle.id });
+  }
+
+  async function captureEmail() {
+    setEmailStatus("");
+    const response = await fetch("/api/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    setEmailStatus(response.ok ? "You're on the list." : "Enter a valid email.");
+    if (response.ok) {
+      setEmail("");
+      track("avatar_email_capture");
+    }
   }
 
   return (
@@ -248,7 +335,7 @@ export default function Home() {
 
           <section className="flex flex-col gap-5">
             <div className="grid gap-3 sm:grid-cols-2">
-              {styles.map((style) => {
+              {avatarStyles.map((style) => {
                 const Icon = styleIcons[style.id];
                 const isSelected = selectedStyle === style.id;
 
@@ -316,17 +403,34 @@ export default function Home() {
                       <Download className="h-4 w-4" />
                       All
                     </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={downloadGamerCard}
+                    >
+                      <Trophy className="h-4 w-4" />
+                      Gamer Card
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={shareAvatar}>
+                      <Share2 className="h-4 w-4" />
+                      Share
+                    </Button>
                   </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   {results.map((result, index) => (
                     <Card key={result.id} className="overflow-hidden">
-                      <img
-                        src={result.imageUrl}
-                        alt={result.label}
-                        className="aspect-square w-full object-cover"
-                      />
+                      <div className="relative">
+                        <img
+                          src={result.imageUrl}
+                          alt={result.label}
+                          className="aspect-square w-full object-cover"
+                        />
+                        <div className="absolute bottom-3 left-3 rounded bg-black/55 px-2 py-1 text-xs font-bold text-lime-200">
+                          Made with GAIMIN Avatar AI
+                        </div>
+                      </div>
                       <div className="flex items-center justify-between gap-3 p-3">
                         <div>
                           <p className="text-sm font-bold text-white">
@@ -340,8 +444,8 @@ export default function Home() {
                           aria-label={`Download variation ${index + 1}`}
                           onClick={() =>
                             downloadImage(
-                              result.imageUrl,
-                              `gaimin-avatar-${index + 1}.jpg`,
+                              brandedAvatarSvg(result.imageUrl, result.label),
+                              `gaimin-avatar-${index + 1}.svg`,
                             )
                           }
                         >
@@ -351,6 +455,34 @@ export default function Home() {
                     </Card>
                   ))}
                 </div>
+                <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white">Next Level</h3>
+                    <p className="text-sm text-zinc-400">
+                      Get launch updates for GAIMIN Launcher, GGPL, and Club.
+                    </p>
+                  </div>
+                  <div className="flex min-w-0 flex-1 gap-2">
+                    <div className="relative min-w-0 flex-1">
+                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="player@email.com"
+                        className="h-11 w-full rounded-md border border-zinc-700 bg-zinc-900 py-2 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-lime-300"
+                      />
+                    </div>
+                    <Button type="button" variant="secondary" onClick={captureEmail}>
+                      Join
+                    </Button>
+                  </div>
+                  {emailStatus && (
+                    <p className="text-sm font-semibold text-lime-300">
+                      {emailStatus}
+                    </p>
+                  )}
+                </Card>
               </section>
             )}
           </section>

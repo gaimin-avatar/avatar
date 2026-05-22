@@ -17,4 +17,5 @@ export type GeneratedAvatar = {
   id: string;
   label: string;
   imageUrl: string;
+  provider?: string;
 };
