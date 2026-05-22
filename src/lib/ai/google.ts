@@ -68,13 +68,13 @@ function getGooglePrompt({
   variation: number;
 }) {
   const baseInstruction =
-    "Use the uploaded image as the identity reference. Preserve the person's recognizable facial features, skin tone, age range, and expression while transforming the portrait into the requested game-inspired avatar style. Return only the finished square avatar image.";
+    "Use the uploaded image only as an identity reference, not as a layer to paste onto the result. Create a new square game avatar from scratch. Keep a recognizable likeness through broad facial structure, skin tone, age range, and key features, but fully redraw the face, hair, body, outfit, lighting, and background in the requested style. Avoid photoreal selfie face, face-swap look, pasted head, unchanged glasses glare, mismatched head/body lighting, or costume-only edits. Return only the finished square avatar image.";
 
   if (qualityMode === "hd") {
-    return `${baseInstruction} ${prompt} Premium 4K HD avatar upgrade: maximize sharpness, texture fidelity, clean facial detail, refined lighting, and high-end game key art polish. Variation ${variation}: preserve the same person while improving production quality.`;
+    return `${baseInstruction} ${prompt} Premium HD avatar upgrade: maximize sharpness, texture fidelity, clean stylized facial detail, refined lighting, and high-end game key art polish. Variation ${variation}: make a distinct composition while keeping the same recognizable character identity.`;
   }
 
-  return `${baseInstruction} ${prompt} Variation ${variation}: create a distinct composition, lighting setup, and outfit detail while preserving the same person.`;
+  return `${baseInstruction} ${prompt} Variation ${variation}: make a distinct avatar composition, expression, lighting setup, and outfit detail while keeping the same recognizable character identity.`;
 }
 
 export const googleImageProvider: AvatarImageProvider = {

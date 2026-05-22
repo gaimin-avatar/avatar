@@ -19,8 +19,9 @@ export function getStylePrompt(styleId: AvatarStyleId) {
 
   return [
     prompt,
-    "Preserve the person's recognizable facial identity, expression, age range, skin tone, and face shape.",
-    "Keep it suitable for a public gaming profile picture.",
+    "Use the uploaded selfie only as identity reference: keep a recognizable likeness, approximate age range, skin tone, face shape, and key features.",
+    "Do not copy, paste, or leave the original photographic face unchanged; redraw the face and body completely in the requested game art style.",
+    "Make the result feel like a finished game avatar/profile picture, not a costume edit.",
     "No text, no logos, no extra watermarks inside the generated image.",
   ].join(" ");
 }
