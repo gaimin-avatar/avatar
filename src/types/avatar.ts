@@ -4,7 +4,13 @@ export type AvatarStyleId =
   | "cyber-esports"
   | "fantasy-rpg"
   | "anime-arena"
-  | "pixel-arcade";
+  | "pixel-arcade"
+  | "stealth-ops"
+  | "space-ranger"
+  | "racing-drift"
+  | "sports-mvp"
+  | "wasteland-survivor"
+  | "mythic-tamer";
 
 export type AvatarStyle = {
   id: AvatarStyleId;

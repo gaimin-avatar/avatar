@@ -71,64 +71,68 @@ export default function SharePage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050408]">
-      <section className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 sm:px-6 lg:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-white/10 bg-black/30 px-4 py-3 shadow-[0_24px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-          <Link href="/" className="flex h-[55px] w-[185px] items-center">
+    <main className="min-h-screen overflow-hidden bg-[#07070a] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(135deg,rgba(139,0,255,0.12)_0%,transparent_34%),linear-gradient(205deg,rgba(255,255,255,0.045)_0%,transparent_28%),linear-gradient(180deg,#101014_0%,#07070a_44%,#030304_100%)]" />
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1180px] flex-col gap-3 px-3 py-3 sm:px-5 lg:px-6">
+        <header className="flex items-center justify-between rounded-full border border-white/[0.08] bg-white/[0.045] px-3 py-2 backdrop-blur-2xl">
+          <Link href="/" className="flex items-center">
             <img
               src="/gaimin-avatar-logo.svg"
               alt="GAIMIN Avatar AI"
-              className="h-[55px] w-[185px] object-contain"
+              className="h-9 w-[128px] object-contain sm:h-10 sm:w-[142px]"
             />
           </Link>
-          <div className="flex items-center gap-3 rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-sm text-zinc-300">
+          <div className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-black/25 px-3 py-2 text-xs text-zinc-300">
             <Zap className="h-4 w-4 text-[#c084fc]" />
-            <span>Made with GAIMIN Avatar AI</span>
+            <span className="hidden sm:inline">Made with GAIMIN Avatar AI</span>
           </div>
         </header>
 
         {payload ? (
-          <div className="grid min-h-[calc(100vh-112px)] gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <section className="rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(18,10,33,0.94),rgba(3,5,9,0.96))] p-4 shadow-[0_34px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-5">
-              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_310px]">
+            <section className="rounded-[18px] border border-white/[0.08] bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/[0.08] pb-3">
                 <div>
-                  <p className="text-xs font-black uppercase text-[#c084fc]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c4b5fd]">
                     Shared avatar set
                   </p>
-                  <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-5xl">
+                  <h1 className="mt-1 text-[30px] font-semibold leading-[0.98] tracking-[-0.04em] text-zinc-50 sm:text-[42px]">
                     {payload.styleName}
                   </h1>
-                  <p className="mt-2 text-sm text-zinc-400">
+                  <p className="mt-2 text-xs text-zinc-500">
                     Made with GAIMIN Avatar AI · {formatTimestamp(payload.createdAt)}
                   </p>
                 </div>
                 <Link href="/">
-                  <Button type="button">
+                  <Button type="button" className="rounded-full">
                     <ImagePlus className="h-4 w-4" />
                     Create Yours
                   </Button>
                 </Link>
               </div>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {payload.images.map((image, index) => (
-                  <Card key={`${image.imageUrl}-${index}`} className="overflow-hidden">
+                  <Card
+                    key={`${image.imageUrl}-${index}`}
+                    className="overflow-hidden rounded-[18px] bg-white/[0.035]"
+                  >
                     <div className="relative">
                       <img
                         src={image.imageUrl}
                         alt={image.label}
                         className="aspect-square w-full object-cover"
                       />
-                      <div className="absolute bottom-3 left-3 rounded bg-black/70 px-2 py-1 text-xs font-bold text-[#e9d5ff] backdrop-blur">
-                        Made with GAIMIN Avatar AI
+                      <div className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-medium text-[#e9d5ff] backdrop-blur">
+                        GAIMIN Avatar AI
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-3 p-3">
+                    <div className="flex items-center justify-between gap-2 p-2.5">
                       <div>
-                        <p className="text-sm font-bold text-white">
+                        <p className="text-xs font-semibold text-white">
                           Variation {index + 1}
                         </p>
-                        <p className="text-xs text-[#c084fc]">{payload.styleName}</p>
+                        <p className="text-[11px] text-[#c4b5fd]">{payload.styleName}</p>
                       </div>
                       <Button
                         type="button"
@@ -147,15 +151,15 @@ export default function SharePage() {
               </div>
             </section>
 
-            <aside className="flex flex-col justify-between rounded-lg border border-white/10 bg-[#090712]/88 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <aside className="flex flex-col justify-between rounded-[18px] border border-white/[0.08] bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
               <div>
-                <p className="text-xs font-black uppercase text-[#c084fc]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c4b5fd]">
                   Next level
                 </p>
-                <h2 className="mt-2 text-2xl font-black text-white">
+                <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-white">
                   Make your own gaming avatar.
                 </h2>
-                <p className="mt-3 text-sm leading-6 text-zinc-400">
+                <p className="mt-3 text-xs leading-5 text-zinc-500">
                   Upload a selfie, choose a game-inspired style, and generate two
                   branded GAIMIN avatars ready to download or share.
                 </p>
@@ -163,7 +167,7 @@ export default function SharePage() {
 
               <div className="mt-6 grid gap-2">
                 <Link href="/">
-                  <Button type="button" className="w-full">
+                  <Button type="button" className="w-full rounded-full">
                     <ImagePlus className="h-4 w-4" />
                     Try GAIMIN Avatar AI
                   </Button>
@@ -171,14 +175,14 @@ export default function SharePage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  className="w-full"
+                  className="w-full rounded-full"
                   onClick={copyShareText}
                 >
                   <Share2 className="h-4 w-4" />
                   Copy Share Text
                 </Button>
                 {copyStatus && (
-                  <p className="rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-center text-sm font-semibold text-[#d8b4fe]">
+                  <p className="rounded-[12px] border border-[#8b00ff]/20 bg-[#8b00ff]/10 px-3 py-2 text-center text-xs font-medium text-[#d8b4fe]">
                     {copyStatus}
                   </p>
                 )}
@@ -186,19 +190,19 @@ export default function SharePage() {
             </aside>
           </div>
         ) : (
-          <section className="flex min-h-[calc(100vh-112px)] items-center justify-center rounded-lg border border-white/10 bg-[#090712]/88 p-6 text-center shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+          <section className="flex flex-1 items-center justify-center rounded-[18px] border border-white/[0.08] bg-white/[0.045] p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
             <div className="max-w-md">
-              <div className="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-[#8b00ff]/30 bg-[#8b00ff]/12 text-[#e9d5ff]">
-                <Share2 className="h-7 w-7" />
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-white/[0.06] text-[#d8b4fe]">
+                <Share2 className="h-5 w-5" />
               </div>
-              <h1 className="mt-4 text-2xl font-black text-white">
+              <h1 className="mt-4 text-xl font-semibold tracking-[-0.02em] text-white">
                 Share link expired or invalid
               </h1>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <p className="mt-2 text-xs leading-5 text-zinc-500">
                 This temporary share page needs a valid generated avatar link.
               </p>
               <Link href="/" className="mt-5 inline-flex">
-                <Button type="button">
+                <Button type="button" className="rounded-full">
                   <ImagePlus className="h-4 w-4" />
                   Create Yours
                 </Button>
