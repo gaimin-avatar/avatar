@@ -29,6 +29,12 @@ type GenerationRecord = {
   images: GeneratedAvatar[];
 };
 
+type SharePayload = {
+  styleName: string;
+  createdAt: string;
+  images: Pick<GeneratedAvatar, "imageUrl" | "label">[];
+};
+
 const styleMotifs: Record<AvatarStyleId, string> = {
   "battle-royale": "drop-zone vector",
   "block-world": "voxel compass",
@@ -185,6 +191,14 @@ function formatTimestamp(value: string) {
   }).format(new Date(value));
 }
 
+function encodeSharePayload(payload: SharePayload) {
+  const encodedJson = encodeURIComponent(JSON.stringify(payload));
+  return btoa(encodedJson)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+}
+
 export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<AvatarStyleId>("cyber-esports");
   const variationCount = 2;
@@ -200,6 +214,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
+  const [shareStatus, setShareStatus] = useState("");
 
   const activeStyle = useMemo(
     () =>
@@ -243,6 +258,7 @@ export default function Home() {
     setPreviewUrl(URL.createObjectURL(file));
     setResults([]);
     setError("");
+    setShareStatus("");
     track("avatar_upload", { type: file.type, size: file.size });
   }
 
@@ -252,6 +268,7 @@ export default function Home() {
     setIsGenerating(true);
     setResults([]);
     setError("");
+    setShareStatus("");
 
     try {
       const formData = new FormData();
@@ -353,19 +370,38 @@ export default function Home() {
   }
 
   async function shareAvatar() {
+    if (results.length === 0) return;
+
+    const payload: SharePayload = {
+      styleName: activeStyle.name,
+      createdAt: new Date().toISOString(),
+      images: results.map((result) => ({
+        imageUrl: result.imageUrl,
+        label: result.label,
+      })),
+    };
+    const shareUrl = `${window.location.origin}/share#${encodeSharePayload(payload)}`;
+    const shareText = `Just became a ${activeStyle.name} on GAIMIN Avatar AI. Made with GAIMIN Avatar AI. Check it out: ${shareUrl}`;
     const shareData = {
       title: "GAIMIN Avatar AI",
-      text: "I made a game-ready avatar with GAIMIN Avatar AI.",
-      url: window.location.href,
+      text: shareText,
+      url: shareUrl,
     };
 
-    if (navigator.share) {
-      await navigator.share(shareData);
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareStatus("Share sheet opened.");
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        setShareStatus("Share link copied.");
+      }
+    } catch {
+      await navigator.clipboard.writeText(shareText);
+      setShareStatus("Share link copied.");
     }
 
-    track("avatar_share", { style: activeStyle.id });
+    track("avatar_share", { style: activeStyle.id, target: "share_page" });
   }
 
   async function captureEmail() {
@@ -621,6 +657,11 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
+                {shareStatus && (
+                  <p className="rounded-md border border-[#8b00ff]/25 bg-[#8b00ff]/10 px-3 py-2 text-sm font-semibold text-[#d8b4fe]">
+                    {shareStatus}
+                  </p>
+                )}
 
                 <div className="grid gap-3">
                   {results.map((result, index) => (
