@@ -19,9 +19,10 @@ export function getStylePrompt(styleId: AvatarStyleId) {
 
   return [
     prompt,
-    "Use the uploaded selfie only as identity reference: keep a recognizable likeness, approximate age range, skin tone, face shape, and key features.",
-    "Do not copy, paste, or leave the original photographic face unchanged; redraw the face and body completely in the requested game art style.",
-    "Make the result feel like a finished game avatar/profile picture, not a costume edit.",
+    "Identity lock is critical: the output must clearly look like the uploaded person at first glance.",
+    "Preserve the person's face shape, jawline, forehead, eye shape and spacing, eyebrow shape, nose bridge and nose tip, mouth shape, lip proportions, cheeks, skin tone, age range, facial hair if present, glasses if present, and overall expression.",
+    "Do not invent a different face, different ethnicity, different age, different nose, different mouth, or different eye spacing.",
+    "Render those same facial features through the chosen game art style so it feels like the person became that character, not a random character.",
     "No text, no logos, no extra watermarks inside the generated image.",
   ].join(" ");
 }
