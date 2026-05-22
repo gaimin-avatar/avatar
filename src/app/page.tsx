@@ -11,6 +11,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -570,11 +571,13 @@ export default function Home() {
 
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1360px] flex-col gap-3 px-3 py-3 sm:px-5 lg:px-6">
         <header className="flex items-center justify-between rounded-full border border-white/[0.08] bg-white/[0.045] px-3 py-2 backdrop-blur-2xl">
-          <img
-            src="/gaimin-avatar-logo.svg"
-            alt="GAIMIN Avatar AI"
-            className="h-9 w-[128px] object-contain sm:h-10 sm:w-[142px]"
-          />
+          <Link href="/" aria-label="Go to GAIMIN Avatar AI home">
+            <img
+              src="/gaimin-avatar-logo.svg"
+              alt="GAIMIN Avatar AI"
+              className="h-9 w-[128px] object-contain sm:h-10 sm:w-[142px]"
+            />
+          </Link>
           <div className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-black/25 p-1">
             {(["create", "history"] as const).map((mode) => (
               <button
