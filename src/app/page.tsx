@@ -906,7 +906,7 @@ export default function Home() {
         ) : (
           <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_330px]">
             <GlassPanel className="p-3">
-              <div className="flex items-end justify-between border-b border-white/[0.08] pb-3">
+              <div className="border-b border-white/[0.08] pb-3">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c4b5fd]">
                     Archive
@@ -915,10 +915,6 @@ export default function Home() {
                     My generations
                   </h1>
                 </div>
-                <Button variant="secondary" size="sm" onClick={() => setViewMode("create")}>
-                  <Sparkles className="h-4 w-4" />
-                  Create
-                </Button>
               </div>
 
               {generationHistory.length === 0 ? (
