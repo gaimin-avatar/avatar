@@ -77,14 +77,6 @@ function getGooglePrompt({
   return `${baseInstruction} ${prompt} Variation ${variation}: create a distinct composition, lighting setup, and outfit detail while preserving the same person.`;
 }
 
-function getImageSize(qualityMode: "free" | "hd") {
-  if (qualityMode === "hd") {
-    return process.env.GOOGLE_IMAGE_SIZE_HD ?? "2K";
-  }
-
-  return process.env.GOOGLE_IMAGE_SIZE_FREE;
-}
-
 export const googleImageProvider: AvatarImageProvider = {
   id: "google",
 
@@ -108,7 +100,6 @@ export const googleImageProvider: AvatarImageProvider = {
           "gemini-2.5-flash-image"
         : process.env.GOOGLE_IMAGE_MODEL ?? "gemini-2.5-flash-image";
     const { mimeType, base64Data } = parseDataUri(imageDataUri);
-    const imageSize = getImageSize(qualityMode);
 
     const requests = Array.from({ length: variations }, async (_, index) => {
       const body: Record<string, unknown> = {
@@ -134,12 +125,6 @@ export const googleImageProvider: AvatarImageProvider = {
         ],
         generationConfig: {
           responseModalities: ["IMAGE"],
-          responseFormat: {
-            image: {
-              aspectRatio: "1:1",
-              ...(imageSize ? { imageSize } : {}),
-            },
-          },
         },
       };
 
@@ -183,4 +168,3 @@ export const googleImageProvider: AvatarImageProvider = {
     return Promise.all(requests);
   },
 };
-
