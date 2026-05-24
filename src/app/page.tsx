@@ -235,6 +235,66 @@ function fileToDataUrl(file: File) {
   });
 }
 
+function loadImage(dataUrl: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Image could not be loaded."));
+    image.src = dataUrl;
+  });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Image could not be prepared for generation."));
+        }
+      },
+      "image/jpeg",
+      0.92,
+    );
+  });
+}
+
+async function normalizeUploadImage(file: File) {
+  const sourceDataUrl = await fileToDataUrl(file);
+  const image = await loadImage(sourceDataUrl);
+  const maxSize = 1536;
+  const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Image could not be prepared for generation.");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await canvasToBlob(canvas);
+  const normalizedFile = new File(
+    [blob],
+    file.name.replace(/\.[^.]+$/, "") + ".jpg",
+    {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    },
+  );
+
+  return {
+    file: normalizedFile,
+    dataUrl: canvas.toDataURL("image/jpeg", 0.92),
+  };
+}
+
 function readSessionHistory(): GenerationRecord[] {
   if (typeof window === "undefined") return [];
 
@@ -371,15 +431,27 @@ export default function Home() {
 
   async function handleUpload(file?: File) {
     if (!file) return;
-    setSelectedFile(file);
-    setFileName(file.name);
-    setPreviewUrl(URL.createObjectURL(file));
-    setSourceImageDataUri(await fileToDataUrl(file));
-    setResults([]);
-    setError("");
-    setShareStatus("");
-    setUnlockStatus("");
-    track("avatar_upload", { type: file.type, size: file.size });
+
+    try {
+      const normalizedImage = await normalizeUploadImage(file);
+
+      setSelectedFile(normalizedImage.file);
+      setFileName(file.name);
+      setPreviewUrl(normalizedImage.dataUrl);
+      setSourceImageDataUri(normalizedImage.dataUrl);
+      setResults([]);
+      setError("");
+      setShareStatus("");
+      setUnlockStatus("");
+      track("avatar_upload", {
+        type: normalizedImage.file.type,
+        originalType: file.type,
+        size: normalizedImage.file.size,
+        originalSize: file.size,
+      });
+    } catch {
+      setError("This image format could not be prepared. Please try another photo.");
+    }
   }
 
   async function handleGenerate() {
@@ -722,7 +794,7 @@ export default function Home() {
                 <input
                   id="avatar-upload"
                   type="file"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept="image/*"
                   className="sr-only"
                   onChange={(event) => handleUpload(event.target.files?.[0])}
                 />
